@@ -118,7 +118,6 @@ COUNT(DISTINCT vin) AS number_of_vehicles,
 --dealing with null values using COALESCE
 COALESCE(make,'Not provided') AS make,
 COALESCE(model,'Not provided') AS model,
-COALESCE(trim,'Not provided') AS trim,
 COALESCE(body,'Not provided') AS body,
 COALESCE(body,'Not provided') AS body,
 COALESCE(transmission,'Not provided') AS transmission,
@@ -166,11 +165,17 @@ CASE
     WHEN  sellingprice BETWEEN 30000 AND 99999 THEN 'Moderate'
     WHEN  sellingprice BETWEEN 100000 AND 499999 THEN 'High'
     WHEN  sellingprice >500000 THEN 'Very high'
-END AS mileage
+END AS mileage,
+
+CASE
+    WHEN  ROUND((sellingprice-mmr)/sellingprice*100,0)<=5 THEN 'low'
+    WHEN  ROUND((sellingprice-mmr)/sellingprice*100,0) BETWEEN 5 AND 10 THEN 'Medium'
+    WHEN  ROUND((sellingprice-mmr)/sellingprice*100,0)>10 THEN 'High'
+END AS performance_tiers
 
 FROM projects.default.bright_motors
 GROUP BY 
-make, model, trim, body, transmission, state,condition,  color, odometer, seller, mmr,sellingprice,
+make, model, body, transmission, state,condition,  color, odometer, seller, mmr,sellingprice,
 CAST(year AS INT),
 date_format((to_timestamp(regexp_replace(saledate, '^[A-Za-z]{3} ', ''), 'MMM dd yyyy HH:mm:ss')), 'yyyy/MM/dd'),
 Monthname(to_timestamp(regexp_replace(saledate, '^[A-Za-z]{3} ', ''), 'MMM dd yyyy HH:mm:ss')),
@@ -200,4 +205,9 @@ CASE
     WHEN  sellingprice BETWEEN 30000 AND 99999 THEN 'Moderate'
     WHEN  sellingprice BETWEEN 100000 AND 499999 THEN 'High'
     WHEN  sellingprice >500000 THEN 'Very high'
-END
+END,
+CASE
+    WHEN  ROUND((sellingprice-mmr)/sellingprice*100,0)<=5 THEN 'low'
+    WHEN  ROUND((sellingprice-mmr)/sellingprice*100,0) BETWEEN 5 AND 10 THEN 'Medium'
+    WHEN  ROUND((sellingprice-mmr)/sellingprice*100,0)>10 THEN 'High'
+END 
